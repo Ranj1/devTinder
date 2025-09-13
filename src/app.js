@@ -2,50 +2,36 @@ const express = require('express');
 
 const app = express();
 
-app.use('/user',(req,res) => {
-    res.send("ha ha ha");
-})
+let rH1 = (req,res,next) => { 
+        console.log("Handling Request No - 1");
+        //res.send("Handling Request No - 1");
+        next();
 
-app.get('/user',(req,res) => { 
+    };
 
-    res.send({'firstName': "Ranjana","LastName": "Tiwari"})
-});
+let rH2 = (req,res,next) => { 
+        console.log("Handling Request No - 2");
+        //res.send("Handling Request No - 2");
+        next();
 
-app.post('/user',(req,res) => { 
+    };
 
-    console.log("Data saved Successfully");
-    res.send("Data saved Successfully");
+let rH3 = (req,res,next) => { 
+        console.log("Handling Request No - 3");
+        //res.send("Handling Request No - 3");
+        next();
 
-});
+    };
 
-app.delete('/user',(req,res) => { 
+let rH4 = (req,res,next) => { 
+        console.log("Handling Request No - 4");
+        res.send("Handling Request No - 4");
+        //next();
 
-    console.log("Data deleted Successfully");
-    res.send("Data deleted Successfully");
+    };
+    
 
-});
-
-app.patch('/user',(req,res) => { 
-
-    console.log("Data patched Successfully");
-    res.send("Data patched Successfully");
-
-});
-
-app.put('/user',(req,res) => { 
-
-    console.log("Data put Successfully");
-    res.send("Data put Successfully");
-
-});
-
-app.use('/test',(req,res) => {
-
-     res.send("Home from the server");
-
-});
-
-
+app.use('/user',[rH1,rH2],rH3,rH4);
 
 app.listen(3004,() => {
     console.log("Server is successfully listening on port 3004");
