@@ -1,37 +1,33 @@
-const express = require('express');
 
+
+const express = require('express');
 const app = express();
 
-let rH1 = (req,res,next) => { 
-        console.log("Handling Request No - 1");
-        //res.send("Handling Request No - 1");
-        next();
+const {adminAuth,userAuth}  = require("./Middleware/auth");
 
-    };
+// Parse JSON body
+app.use(express.json());
 
-let rH2 = (req,res,next) => { 
-        console.log("Handling Request No - 2");
-        //res.send("Handling Request No - 2");
-        next();
+app.use("/admin",adminAuth);
 
-    };
 
-let rH3 = (req,res,next) => { 
-        console.log("Handling Request No - 3");
-        //res.send("Handling Request No - 3");
-        next();
+app.post("/user/logIn",userAuth,(req,res) => {
+    console.log("User LoggedIn SuccessFully");
+    res.send("User LoggedIn SuccessFully"); 
+})
+app.post("/user/getAllUser",userAuth,(req,res) => {
+    console.log("get all user data");
+    res.send("get all user data"); 
+})
 
-    };
+app.post("/admin/getAllData",(req , res) => {
+    console.log("get all data");
+    res.send("All Data Sent");
+});
 
-let rH4 = (req,res,next) => { 
-        console.log("Handling Request No - 4");
-        res.send("Handling Request No - 4");
-        //next();
-
-    };
-    
-
-app.use('/user',[rH1,rH2],rH3,rH4);
+app.post("/admin/deleteAllUser",(req , res) => {
+    res.send("deleted a User");
+});
 
 app.listen(3004,() => {
     console.log("Server is successfully listening on port 3004");
