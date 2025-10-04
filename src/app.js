@@ -1,12 +1,18 @@
 const express = require('express');
 const connectDB = require("./config/database");
 const User = require("./Models/user");
+const {userAuth} = require("./Middleware/auth")
 const bcrypt = require('bcrypt');
+const cookieParser =require('cookie-parser');
+const jwt = require("jsonwebtoken");
 const {validateSignUpData} = require('./utils/validation');
+
 
 const app = express();
 
+
 app.use(express.json());
+app.use(cookieParser())
 app.post("/signup", async(req,res) =>{
    try{
        //validation of user
@@ -16,7 +22,7 @@ app.post("/signup", async(req,res) =>{
 
        //Encrypt the password
        const passwordHash = await bcrypt.hash(password,10);
-       console.log(passwordHash);
+       
     
        //creating new instance of the user model
        const newUser = new User({
@@ -42,10 +48,17 @@ app.post("/login", async(req,res) =>{
          throw new Error("Invalid Credential");
        }
 
-       const isPasswordValid = await bcrypt.compare(password,user.password);
+       const isPasswordValid = await user.validatePassword(password);
+       console.log(isPasswordValid);
 
        if(isPasswordValid){
+        //create JWT token
+        const token = await user.getJWT()
+
+        //add token to cookie and send the response back to the user
+        res.cookie('token',token,{ expires: new Date(Date.now() + 900000), httpOnly: true }); 
         res.send("Login SuccessFull");
+
        }else{
         throw new Error("Invalid Credential");
        }
@@ -54,6 +67,30 @@ app.post("/login", async(req,res) =>{
        res.status(400).send("Error: " + err.message);
     }
 })
+
+//Profile
+app.get("/profile", userAuth, async(req,res) => {
+
+    try{
+        const user  = req.user;
+        res.send(user);
+    }catch(err){
+        res.status(400).send("Error: " + err.message); 
+    }
+    
+});
+
+//Send Connection Request
+app.post("/sendConnectionRequest", userAuth, async(req,res) => {
+    const user = req.user;
+    try{
+      console.log("Connection Request Send");
+      res.send(user.firstName+" Connection Request Send");
+    }catch(err){
+        res.status(400).send("Error: " + err.message); 
+    }
+    
+});
 
 //Feed API
 app.get("/feed", async(req,res) => {
@@ -105,7 +142,7 @@ app.patch("/user/:userId",async (req,res) =>{
             new: true, // return updated doc
             runValidators: true,
         })
-        if (!updatedUser) {
+        if (!updateUser) {
             return res.status(404).json({ success: false, message: "User not found" });
         }
 

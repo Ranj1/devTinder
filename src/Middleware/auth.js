@@ -1,48 +1,34 @@
+const jwt = require("jsonwebtoken");
+const User = require("../Models/user")
 
+const userAuth= async (req,res,next) => {
+     try{
+        //Get Token
+        let {token} = req.cookies; //// extract the string value
+        if(!token){
+            throw new Error("Invalid Token");
+        }
+        
+        console.log(token);
+        //verify Token
+        const decodeObj = jwt.verify(token , "Ranjana@123$");
 
- const adminAuth= (req,res,next) => {
-
-    console.log("Admin auth is getting checked");
-
-    const token = req.body.token;
-
-    console.log(token);
-
-    const isAdminAuthorized = token === 'xyz'
-
-    if(!isAdminAuthorized){
-
-        res.status(401).send("unauthorized User");
-
-    }else{
+        const {_id} = decodeObj;
+ 
+        //verify User
+        const user = await User.findById(_id);
+        if(!user){
+            throw new Error("User Not found.")
+        }
+        req.user = user; // attach user to request (good practice)
         next();
+    }catch(err){
+        res.status(400).send("Errorrr : " + err)
     }
 
-};
 
- const userAuth= (req,res,next) => {
-
-    console.log("User auth is getting checked");
-
-    const token = req.body.token;
-
-    console.log(token);
-
-    const isAdminAuthorized = token === 'xyz'
-
-    if(!isAdminAuthorized){
-
-        res.status(401).send("unauthorized User");
-
-    }else{
-        next();
-    }
 
 };
 
 
-module.exports  = {
-    adminAuth:adminAuth,
-    userAuth : userAuth
-
-}
+module.exports  = {userAuth : userAuth}
